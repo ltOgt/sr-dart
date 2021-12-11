@@ -2,6 +2,8 @@
 library small_read;
 
 class SmallReadConverter {
+  SmallReadConverter._();
+
   static String encode(Map<String, Object> map) {
     final result = StringBuffer();
     for (String key in map.keys) {

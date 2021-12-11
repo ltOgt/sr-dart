@@ -10,6 +10,8 @@ Clear Text Data Storage format with the following goals:
     * Less noise while reading
 * efficient decode + encode
 
+Online demo of current version: [here](https://omnesia.org/flutter_showcase/srx/)
+
 _______
 
 ## Reserverd symbols
@@ -189,3 +191,14 @@ The second line will start decoding in an unexpected state.
 
 *`TODO: consider adding SRD for dynamic without size (would generate SR in pre-processing step, so rather used for user generated input once, not for every read cycle)`
 
+#### - names are unique per level
+```
+obj::2
+.n1:v1
+.n1:v2
+```
+will currently result in:
+```json
+{"obj":{"n1":"v2"}}
+```
+but that behaviour is undefined and might change
