@@ -143,6 +143,22 @@ _______
 ```
 is valid json, but has no valid `SR` counterpart.
 
+Less obvious, the same holds true for
+```json
+[
+    {
+        "a":1,
+        "b":2
+    },
+    {
+        "a":4,
+        "b":3
+    },
+    ...
+]
+```
+`SR` can not have top level lists, nor unnamed objects inside a list!
+
 ## Validation
 The current implementation of `SmallReadConverter` does not check for valid form of an input `SR` file.
 If the `SR` file is malformed, the conversion behaviour is undefined and might throw or return incorrect data without failing.
