@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
       home: const Scaffold(
         backgroundColor: Color(0xFF444444),
         body: Padding(
-          padding: EdgeInsets.all(40),
+          padding: EdgeInsets.symmetric(vertical: 8),
           child: Converter(),
         ),
       ),
@@ -69,19 +69,26 @@ class _ConverterState extends State<Converter> {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        TextBox(
-          title: "JSON",
-          ctrl: ctrlJson,
-          onConvert: convertJsonToSr,
+        SizedBox(
+          width: width * 0.45,
+          child: TextBox(
+            title: "JSON",
+            ctrl: ctrlJson,
+            onConvert: convertJsonToSr,
+          ),
         ),
-        TextBox(
-          title: "SR",
-          ctrl: ctrlSR,
-          onConvert: convertSrToJson,
+        SizedBox(
+          width: width * 0.45,
+          child: TextBox(
+            title: "SR",
+            ctrl: ctrlSR,
+            onConvert: convertSrToJson,
+          ),
         ),
       ],
     );
@@ -152,18 +159,21 @@ class TextBox extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 10),
-        Container(
-          width: 300,
-          height: 600,
-          decoration: const BoxDecoration(
-            borderRadius: BorderRadius.all(Radius.circular(8)),
-            color: Color(0xFF222222),
-          ),
-          child: TextField(
-            controller: ctrl,
-            minLines: 20,
-            maxLines: null,
-            style: GoogleFonts.robotoMono(),
+        Expanded(
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.white),
+              borderRadius: const BorderRadius.all(
+                Radius.circular(4.0),
+              ),
+              color: const Color(0xFF222222),
+            ),
+            child: TextField(
+              controller: ctrl,
+              minLines: 50,
+              maxLines: null,
+              style: GoogleFonts.robotoMono(),
+            ),
           ),
         ),
         const SizedBox(height: 10),
