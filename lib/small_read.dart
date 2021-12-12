@@ -8,37 +8,38 @@ class SmallReadConverter {
     final result = StringBuffer();
     for (String key in map.keys) {
       final childBuffer = StringBuffer();
-      _encodeChildren(key, map[key]!, childBuffer, 0);
+      _encodeChildren(
+        key: key,
+        value: map[key]!,
+        buffer: childBuffer,
+        depth: 0,
+      );
       result.write(childBuffer.toString());
     }
     return result.toString();
   }
 
   /// Recursively writes to buffer and returns number of generated lines
-  static int _encodeChildren(
-    String key,
-    Object value,
-    StringBuffer buffer,
-    int depth,
-  ) {
+  static int _encodeChildren({
+    required String key,
+    required Object value,
+    required StringBuffer buffer,
+    required int depth,
+  }) {
     if (value is String || value is num) {
       // Leaf
       buffer.writeln("${'.' * depth}$key:$value");
       return 1;
-    }
-    if (value is List) {
-      if (depth == 0) throw "Cant have list in top level";
-      throw "Lists not yet implemented";
     }
     if (value is Map) {
       final _childBuffer = StringBuffer();
       int _lines = 0;
       for (String key in value.keys) {
         _lines += _encodeChildren(
-          key,
-          value[key]!,
-          _childBuffer,
-          depth + 1,
+          key: key,
+          value: value[key]!,
+          buffer: _childBuffer,
+          depth: depth + 1,
         );
       }
 
@@ -46,48 +47,98 @@ class SmallReadConverter {
       buffer.write(_childBuffer.toString());
       return 1 + _lines;
     }
+    if (value is List) {
+      final _childBuffer = StringBuffer();
+      int _lines = 0;
+      for (final val in value) {
+        _lines += _encodeChildren(
+          key: "",
+          value: val,
+          buffer: _childBuffer,
+          depth: depth + 1,
+        );
+      }
+
+      buffer.writeln("${'.' * depth}$key:::$_lines");
+      buffer.write(_childBuffer.toString());
+      return 1 + _lines;
+    }
     throw "Unexpected State";
   }
 
-  static Map decode(String sr) => _decodeChild(sr.split('\n'), 0);
+  static Map decode(String sr) => _decodeChild(
+        lineScope: sr.split('\n'),
+        depth: 0,
+        enableComments: (sr.startsWith("**")),
+        groupScope: true,
+      ).map!;
 
   // TODO currently simply assumes well formed file for optimization
-  // TODO currently cant handle lists
-  // TODO currently does not warn on duplicate keys, simply overrireds
-  static Map _decodeChild(List<String> lineScope, int depth) {
-    final ret = {};
+  static _MapOrList _decodeChild({
+    required List<String> lineScope,
+    required int depth,
+    required bool enableComments,
+    required bool groupScope,
+  }) {
+    final _MapOrList ret = groupScope //
+        ? _MapOrList.map({})
+        : _MapOrList.list([]);
+
     int l = 0;
     while (l < lineScope.length) {
-      // remove leading dots
-      final line = lineScope[l].substring(depth).trim();
-      if (line.isEmpty) {
+      // remove leading dots (and comments)
+      final line = (enableComments) //
+          ? lineScope[l].substring(depth).split('**').first
+          : lineScope[l].substring(depth);
+
+      // ignore empty/whitespace lines (whitespace is legal part of name/value)
+      if (line.trim().isEmpty) {
         l += 1;
         continue;
       }
 
       final components = line.split(':');
-      if (components.length == 2) {
-        // "n:v" => [n,v] ; Field
-        ret[components.first] = components.last;
-        l += 1;
-      } else if (components.length == 3) {
-        // "o::s" => [o,,s] ; Object Head
-        final skip = int.parse(components.last);
-        ret[components.first] = _decodeChild(
-          lineScope.sublist(l + 1, l + 1 + skip),
-          depth + 1,
-        );
-        l += 1 + skip;
-      } else {
-        throw "Unexpected State";
+      switch (components.length) {
+        case 2:
+          // "n:v" => [n,v] ; Value
+          ret.add(components.first, components.last);
+          l += 1;
+          break;
+        case 3:
+        // "n::s" => [n,,s] ; Object Head
+        case 4:
+          // "n:::s" => [n,,,s] ; List Head
+          final skip = int.parse(components.last);
+          ret.add(
+            components.first,
+            _decodeChild(
+              lineScope: lineScope.sublist(l + 1, l + 1 + skip),
+              depth: depth + 1,
+              enableComments: enableComments,
+              groupScope: (components.length == 3),
+            ).extract(),
+          );
+          l += 1 + skip;
+          break;
+        default:
+          throw "Unexpected State";
       }
     }
     return ret;
   }
+}
 
-  /// returns {"field": "value"} for single field access
-  /// Paths can not go into lists
-  static Map decodeWithRootPath(String sr, List<String> path) {
-    throw UnimplementedError();
-  }
+class _MapOrList {
+  final List? list;
+  final Map? map;
+
+  const _MapOrList.map(this.map) : list = null;
+  const _MapOrList.list(this.list) : map = null;
+
+  Object extract() => list ?? map!;
+
+  void add(String name, Object value) => //
+      (name.isNotEmpty) //
+          ? map![name] = value
+          : list!.add(value);
 }

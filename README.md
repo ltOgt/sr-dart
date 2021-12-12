@@ -120,7 +120,7 @@ my.Name:.my.Value
 ```
 Would be decoded as
 ```
-"myName"   -> " myValue"
+"myName"    -> " myValue"
 " my name " -> " my value "
 "my.Name"   -> ".my.Value"
 ```
@@ -167,7 +167,7 @@ myList:::2**        start of myList scope
 ```
 
 
-# JSON <-> SR
+# SR <-> JSON
 ### Values
 `Named` `Values` are basically just key-value pairs:
 ```
@@ -297,7 +297,7 @@ Less obvious, the same holds true for
     ...
 ]
 ```
-`SR` can not have top level lists!
+since `SR` can not have top level lists!
 
 ## Validation
 The current implementation of `SmallReadConverter` does not check for valid form of an input `SR` file.

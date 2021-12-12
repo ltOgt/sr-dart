@@ -25,6 +25,29 @@ void main() {
       ].join("\n");
       expect(SmallReadConverter.encode(map), equals(expected));
     });
+
+    test('Nested List', () {
+      final map = {
+        "f1": "v1",
+        "f2": "v2",
+        "l1": [
+          '3',
+          {
+            "f4": '4',
+          },
+        ],
+      };
+      final expected = [
+        "f1:v1",
+        "f2:v2",
+        "l1:::3",
+        ".:3",
+        ".::1",
+        "..f4:4",
+        "",
+      ].join("\n");
+      expect(SmallReadConverter.encode(map), equals(expected));
+    });
   });
 
   group('Decode', () {
@@ -45,6 +68,29 @@ void main() {
         "o1::3",
         ".f3:3",
         ".o2::1",
+        "..f4:4",
+        "",
+      ].join("\n");
+      expect(SmallReadConverter.decode(sr), equals(expected));
+    });
+
+    test('Nested List', () {
+      final expected = {
+        "f1": "v1",
+        "f2": "v2",
+        "l1": [
+          '3',
+          {
+            "f4": '4',
+          },
+        ],
+      };
+      final sr = [
+        "f1:v1",
+        "f2:v2",
+        "l1:::3",
+        ".:3",
+        ".::1",
         "..f4:4",
         "",
       ].join("\n");
