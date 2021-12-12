@@ -26,7 +26,7 @@ class SmallReadConverter {
     required StringBuffer buffer,
     required int depth,
   }) {
-    if (value is String || value is num) {
+    if (value is String || value is num || value is bool) {
       // Leaf
       buffer.writeln("${'.' * depth}$key:$value");
       return 1;
