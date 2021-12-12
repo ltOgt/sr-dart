@@ -1,7 +1,5 @@
 # .SR - SmallRead
 
-`TODO: Lists not yet implemented`
-
 Clear Text Data Storage format with the following goals:
 * human readable
 * minimal symbol overhead
