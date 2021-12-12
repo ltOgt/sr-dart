@@ -97,25 +97,29 @@ class SmallReadConverter {
         continue;
       }
 
-      final components = line.split(':');
-      switch (components.length) {
-        case 2:
-          // "n:v" => [n,v] ; Value
-          ret.add(components.first, components.last);
+      final List components = _decomposeElement(line);
+      final String name = components[0];
+      final int colons = components[1];
+      final String value = components[2]; // or SIZE for head
+
+      switch (colons) {
+        case 1:
+          // "n:v"
+          ret.add(name, value);
           l += 1;
           break;
+        case 2:
+        // "n::s"
         case 3:
-        // "n::s" => [n,,s] ; Object Head
-        case 4:
-          // "n:::s" => [n,,,s] ; List Head
-          final skip = int.parse(components.last);
+          // "n:::s"
+          final skip = int.parse(value);
           ret.add(
             components.first,
             _decodeChild(
               lineScope: lineScope.sublist(l + 1, l + 1 + skip),
               depth: depth + 1,
               enableComments: enableComments,
-              groupScope: (components.length == 3),
+              groupScope: (colons == 2),
             ).extract(),
           );
           l += 1 + skip;
@@ -126,14 +130,49 @@ class SmallReadConverter {
     }
     return ret;
   }
+
+  static const int _colonRune = 58;
+
+  /// Decomposes the element "X:::Y" into ["X",3,"Y"]
+  static List _decomposeElement(String element) {
+    assert(element.length > 1, "Invalid element, smallest possible element has the form `:x`");
+
+    final int first = element.indexOf(':');
+    late final int last;
+
+    assert(first >= 0);
+    assert(element.length > first + 1, "Invalid Element; nothing after name: $element");
+
+    // Next char is not another colon
+    if (element.codeUnitAt(first + 1) != _colonRune) {
+      // name:value
+      last = first;
+    } else {
+      assert(element.length > first + 2, "Invalid Element; nothing after name: $element");
+
+      // Next-Next char is not another colon
+      if (element.codeUnitAt(first + 2) != _colonRune) {
+        // obj::size
+        last = first + 1;
+      } else {
+        assert(element.length > first + 3, "Invalid Element; nothing after name: $element");
+
+        // list:::size
+        last = first + 2;
+
+        assert(element.codeUnitAt(first + 3) != _colonRune, "Invalid Element; four colons: $element");
+      }
+    }
+    return [element.substring(0, first), 1 + last - first, element.substring(1 + last)];
+  }
 }
 
 class _MapOrList {
   final List? list;
   final Map? map;
 
-  const _MapOrList.map(this.map) : list = null;
-  const _MapOrList.list(this.list) : map = null;
+  _MapOrList.map(this.map) : list = null;
+  _MapOrList.list(this.list) : map = null;
 
   Object extract() => list ?? map!;
 

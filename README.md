@@ -17,7 +17,7 @@ And a small example right here:
 ** Small SR example
 name:README.md
 type:markdown
-modified:2021-12-12 1300** can't use ":" outside of comments
+modified:2021-12-12 13:00** can use colons only after first char of value
 ** incomplete
 sections::3** object
 .syntax:::2** list
@@ -104,11 +104,12 @@ Would be decoded as
 ".2"
 ```
 
-Values may not contain `:`, (or `**` iff comments are enabled).
-They are allowed to contain `.` or any other characters
+`Values` must _not start_ with `:`.
+They are allowed to contain `.` or any other characters (even at the start).
+They must _not contain any_ `**`, iff comments are allowed.
 
 ### Name
-Values (and Objects and Lists) can be named if their scope allows it.
+`Values` (and `Objects` and `Lists`) can be `named` if their `scope` allows it.
 They go from the start of the line to the first `:` and are also always interpreted as `String`.
 
 ```
@@ -123,8 +124,9 @@ Would be decoded as
 "my.Name"   -> ".my.Value"
 ```
 
-Names may not contain `:`, (or `**` iff comments are enabled), just like values.
-Additionally, names may not _start_ with `.`!
+`Names` must _not contain any_ `:`.
+They must _not start_ with `.`.
+They must _not contain any_ `**`, iff comments are allowed
 
 ## Object: Head and Scope
 `Objects` are `scopes` that allow only `named` `elements`.
@@ -297,6 +299,13 @@ Less obvious, the same holds true for
 ```
 since `SR` can not have top level lists!
 
+## JSON -> SR -> JSON may change value types
+Since all values in `SR` are interpreted as `String`, the default mapping from `SR` back to `JSON` may not result in the original file:
+```
+{"a":true} -> a:true -> {"a":"true"}
+```
+You may parse numbers and booleans back manually.
+
 ## Validation
 The current implementation of `SmallReadConverter` does not check for valid form of an input `SR` file.
 If the `SR` file is malformed, the conversion behaviour is undefined and might throw or return incorrect data without failing.
@@ -376,6 +385,8 @@ name:value ** comment
 "name"->"value** this is my comment"
 "name"->"value ** comment"
 ```
+
+Note that comments will be lost on decode.
 
 # Experiment
 ```

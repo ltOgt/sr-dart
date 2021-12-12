@@ -71,7 +71,7 @@ void main() {
       expect(SmallReadConverter.decode(sr), equals(mapStr));
     });
 
-    test("Complex Example", () {
+    test("Mozilla Example", () {
       // Taken from https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Objects/JSON
 
       final map = {
@@ -161,6 +161,111 @@ void main() {
         "...:Inferno",
         "...:Teleportation",
         "...:Interdimensional travel",
+        "",
+      ].join('\n');
+      expect(SmallReadConverter.encode(map), equals(sr));
+      expect(SmallReadConverter.decode(sr), equals(mapStr));
+    });
+
+    test("Complex Example", () {
+      // Taken from https://json-generator.com/
+      final map = {
+        "_id": "61b620a81f422d2f26929493",
+        "index": 0,
+        "guid": "519a7357-be54-48a3-83cd-d4b26acdc302",
+        "isActive": false,
+        "balance": "€2,060.16",
+        "picture": "http://placehold.it/32x32",
+        "age": 22,
+        "eyeColor": "green",
+        "name": "Tabitha Arnold",
+        "gender": "female",
+        "company": "DAYCORE",
+        "email": "tabithaarnold@daycore.com",
+        "phone": "+1 (958) 561-3130",
+        "address": "923 Harbor Court, Roderfield, Vermont, 8520",
+        "about":
+            "Lorem aliqua non ea mollit ad. Incididunt dolor exercitation deserunt eiusmod occaecat id culpa et in dolore ullamco et magna adipisicing. Veniam est ipsum ut officia exercitation id Lorem. Ex mollit deserunt sunt anim voluptate exercitation.",
+        "registered": "2016-10-06T10:34:43 -02:00",
+        "latitude": 11.873447,
+        "longitude": -13.68962,
+        "tags": ["est", "minim", "cillum", "veniam", "nulla", "ea", "id"],
+        "friends": [
+          {"id": 0, "name": "Rosalinda Faulkner"},
+          {"id": 1, "name": "Lynn Drake"},
+          {"id": 2, "name": "Chambers Collins"}
+        ],
+        "greeting": "Hello, Tabitha Arnold! You have 7 unread messages.",
+        "favoriteFruit": "strawberry"
+      };
+      final mapStr = {
+        "_id": "61b620a81f422d2f26929493",
+        "index": "0",
+        "guid": "519a7357-be54-48a3-83cd-d4b26acdc302",
+        "isActive": "false",
+        "balance": "€2,060.16",
+        "picture": "http://placehold.it/32x32",
+        "age": "22",
+        "eyeColor": "green",
+        "name": "Tabitha Arnold",
+        "gender": "female",
+        "company": "DAYCORE",
+        "email": "tabithaarnold@daycore.com",
+        "phone": "+1 (958) 561-3130",
+        "address": "923 Harbor Court, Roderfield, Vermont, 8520",
+        "about":
+            "Lorem aliqua non ea mollit ad. Incididunt dolor exercitation deserunt eiusmod occaecat id culpa et in dolore ullamco et magna adipisicing. Veniam est ipsum ut officia exercitation id Lorem. Ex mollit deserunt sunt anim voluptate exercitation.",
+        "registered": "2016-10-06T10:34:43 -02:00",
+        "latitude": "11.873447",
+        "longitude": "-13.68962",
+        "tags": ["est", "minim", "cillum", "veniam", "nulla", "ea", "id"],
+        "friends": [
+          {"id": "0", "name": "Rosalinda Faulkner"},
+          {"id": "1", "name": "Lynn Drake"},
+          {"id": "2", "name": "Chambers Collins"}
+        ],
+        "greeting": "Hello, Tabitha Arnold! You have 7 unread messages.",
+        "favoriteFruit": "strawberry"
+      };
+      final sr = [
+        "_id:61b620a81f422d2f26929493",
+        "index:0",
+        "guid:519a7357-be54-48a3-83cd-d4b26acdc302",
+        "isActive:false",
+        "balance:€2,060.16",
+        "picture:http://placehold.it/32x32",
+        "age:22",
+        "eyeColor:green",
+        "name:Tabitha Arnold",
+        "gender:female",
+        "company:DAYCORE",
+        "email:tabithaarnold@daycore.com",
+        "phone:+1 (958) 561-3130",
+        "address:923 Harbor Court, Roderfield, Vermont, 8520",
+        "about:Lorem aliqua non ea mollit ad. Incididunt dolor exercitation deserunt eiusmod occaecat id culpa et in dolore ullamco et magna adipisicing. Veniam est ipsum ut officia exercitation id Lorem. Ex mollit deserunt sunt anim voluptate exercitation.",
+        "registered:2016-10-06T10:34:43 -02:00",
+        "latitude:11.873447",
+        "longitude:-13.68962",
+        "tags:::7",
+        ".:est",
+        ".:minim",
+        ".:cillum",
+        ".:veniam",
+        ".:nulla",
+        ".:ea",
+        ".:id",
+        "friends:::9",
+        ".::2",
+        "..id:0",
+        "..name:Rosalinda Faulkner",
+        ".::2",
+        "..id:1",
+        "..name:Lynn Drake",
+        ".::2",
+        "..id:2",
+        "..name:Chambers Collins",
+        "greeting:Hello, Tabitha Arnold! You have 7 unread messages.",
+        "favoriteFruit:strawberry",
         "",
       ].join('\n');
       expect(SmallReadConverter.encode(map), equals(sr));
