@@ -26,7 +26,7 @@ sections::3** object
 ```
 
 # Syntax
-(For highlighting in VSCode see (here)[https://github.com/ltOgt/sr-vscode])
+(For highlighting in VSCode see [here](https://github.com/ltOgt/sr-vscode))
 ## Reserverd symbols
 `SR` only reserves
 * `:` anywhere
