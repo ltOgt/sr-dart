@@ -46,12 +46,13 @@ Character escaping is not supported.
 * `name`
 * `object-head`
 * `list-head`
+* `set-head`
 
 ### Element
 Each line in `SR` represents an `element`.
 Multi-line `elements` are not supported.
 
-`Elements` in `SR` are (`named`) `values` or (`named`) `object-`/`list-heads`.
+`Elements` in `SR` are (`named`) `values` or (`named`) `object-`/`list-`/`set-heads`.
 
 ### Scope
 Similar to `yaml`, `SR` uses a kind of indentation to hierarchically group data.
@@ -70,7 +71,7 @@ Here `<element-1>` is in the global `scope` of the `SR` file.
 `<e-4>` is in the `scope` of `<e-3>` (transitively, also in `<element-1>`).
 
 The entire file defines one global `scope`.
-Inside, `Scopes` are started via `object-` or `list-heads`.
+Inside, `Scopes` are started via `object-`/`list-`/`set-heads`.
 `Values` never have a `scope` beyond their own line.
 
 ### Scope-Size
@@ -110,7 +111,7 @@ They are allowed to contain `.` or any other characters (even at the start).
 They must _not contain any_ `**`, iff comments are allowed.
 
 ### Name
-`Values` (and `Objects` and `Lists`) can be `named` if their `scope` allows it.
+`Values` (and `Objects`/`Lists`/`Sets`) can be `named` if their `scope` allows it.
 They go from the start of the line to the first `:` and are also always interpreted as `String`.
 
 ```
@@ -136,7 +137,7 @@ They must _not contain any_ `**`, iff comments are allowed
 Each element in the `objects` `scope` gets one `.` added to the start of the line.
 The `scope` ends when the number of leading `.` returns to the same number as before the `object-head`.
 
-`Objects` are `named` inside `object-scope` and `un-named` in `list-scope`.
+`Objects` are `named` inside `object-scope` and `un-named` in `list-`&`set-scope`.
 ```
 **                  start of global scope
 name:value
@@ -155,7 +156,7 @@ myObj::2**          start of myObj scope
 Each element in the `lists` `scope` gets one `.` added to the start of the line.
 The `scope` ends when the number of leading `.` returns to the same number as before the `list-head`.
 
-`Lists` are `named` inside `object-scope` and `un-named` in `list-scope`.
+`Lists` are `named` inside `object-scope` and `un-named` in `list-`&`set-scope`.
 ```
 **                  start of global scope
 name:value
@@ -165,6 +166,39 @@ myList:::2**        start of myList scope
 **                  end of unnamed object scope
 .:value
 **                  end of myList and global scope
+```
+
+## Set: Head and Scope
+`Sets` are `scopes` that allow only `un-named` `elements`.
+In addition to `Lists`, sets do not allow duplicate fields.
+Ordering of elements might not be preserved (but should be in the dart implementation).
+
+`Set-heads` start with quadrupel colon `::::`, followed by their `scope-size`.
+Each element in the `set` `scope` gets one `.` added to the start of the line.
+The `scope` ends when the number of leading `.` returns to the same number as before the `set-head`.
+
+`Set` are `named` inside `object-scope` and `un-named` in `list-`&`set-scope`.
+```
+**                  start of global scope
+name:value
+mySet::::2**        start of mySet scope
+.::1**              start of unnamed object scope inside mySet
+..name:value
+**                  end of unnamed object scope
+.:value
+**                  end of mySet and global scope
+```
+
+If duplicate `values` exist in a `set`, they are removed on `decode`.
+```
+mySet::::2
+.value
+.value
+```
+Will be changed to the following on `decode` -> `encode` cycle:
+```
+mySet::::1
+.value
 ```
 
 
@@ -276,6 +310,9 @@ myList:::3
 }
 ```
 
+### Sets
+`Json` does not support sets at all.
+
 # Caveats
 
 ## Valid JSON might not have a valid SR mapping
@@ -306,6 +343,9 @@ Since all values in `SR` are interpreted as `String`, the default mapping from `
 {"a":true} -> a:true -> {"a":"true"}
 ```
 You may parse numbers and booleans back manually.
+
+## Valid SR might not be valid JSON
+Since `JSON` does not support `set`, `sr` containing `sets` can not be represented as `JSON`.
 
 ## Validation
 The current implementation of `SmallReadConverter` does not check for valid form of an input `SR` file.
