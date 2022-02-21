@@ -271,5 +271,30 @@ void main() {
       expect(SmallReadConverter.encode(map), equals(sr));
       expect(SmallReadConverter.decode(sr), equals(mapStr));
     });
+
+    test('Set', () {
+      final map = {
+        "f1": "v1",
+        "f2": "v2",
+        // ignore: equal_elements_in_set
+        "set": {1, 2, 3, 3},
+      };
+      final mapStr = {
+        "f1": "v1",
+        "f2": "v2",
+        "set": {"1", "2", "3"},
+      };
+      final sr = [
+        "f1:v1",
+        "f2:v2",
+        "set::::3",
+        ".:1",
+        ".:2",
+        ".:3",
+        "",
+      ].join("\n");
+      expect(SmallReadConverter.encode(map), equals(sr));
+      expect(SmallReadConverter.decode(sr), equals(mapStr));
+    });
   });
 }

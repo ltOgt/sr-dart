@@ -63,6 +63,22 @@ class SmallReadConverter {
       buffer.write(_childBuffer.toString());
       return 1 + _lines;
     }
+    if (value is Set) {
+      final _childBuffer = StringBuffer();
+      int _lines = 0;
+      for (final val in value) {
+        _lines += _encodeChildren(
+          key: "",
+          value: val,
+          buffer: _childBuffer,
+          depth: depth + 1,
+        );
+      }
+
+      buffer.writeln("${'.' * depth}$key::::$_lines");
+      buffer.write(_childBuffer.toString());
+      return 1 + _lines;
+    }
     throw "Unexpected State";
   }
 
@@ -70,19 +86,17 @@ class SmallReadConverter {
         lineScope: sr.split('\n'),
         depth: 0,
         enableComments: (sr.startsWith("**")),
-        groupScope: true,
+        parentType: _IterType.map,
       ).map!;
 
   // TODO currently simply assumes well formed file for optimization
-  static _MapOrList _decodeChild({
+  static _MapOrListOrSet _decodeChild({
     required List<String> lineScope,
     required int depth,
     required bool enableComments,
-    required bool groupScope,
+    required _IterType parentType,
   }) {
-    final _MapOrList ret = groupScope //
-        ? _MapOrList.map({})
-        : _MapOrList.list([]);
+    final _MapOrListOrSet ret = parentType.init();
 
     int l = 0;
     while (l < lineScope.length) {
@@ -109,9 +123,11 @@ class SmallReadConverter {
           l += 1;
           break;
         case 2:
-        // "n::s"
+        // "n::s"   => map
         case 3:
-          // "n:::s"
+        // "n:::s"  => list
+        case 4:
+          // "n::::s" => set
           final skip = int.parse(value);
           ret.add(
             components.first,
@@ -119,7 +135,7 @@ class SmallReadConverter {
               lineScope: lineScope.sublist(l + 1, l + 1 + skip),
               depth: depth + 1,
               enableComments: enableComments,
-              groupScope: (colons == 2),
+              parentType: _IterTypeX.fromColons(colons),
             ).extract(),
           );
           l += 1 + skip;
@@ -134,6 +150,7 @@ class SmallReadConverter {
   static const int _colonRune = 58;
 
   /// Decomposes the element "X:::Y" into ["X",3,"Y"]
+  // TODO this can be simplified by generalizing
   static List _decomposeElement(String element) {
     assert(element.length > 1, "Invalid element, smallest possible element has the form `:x`");
 
@@ -157,27 +174,78 @@ class SmallReadConverter {
       } else {
         assert(element.length > first + 3, "Invalid Element; nothing after name: $element");
 
-        // list:::size
-        last = first + 2;
+        if (element.codeUnitAt(first + 3) != _colonRune) {
+          // list:::size
+          last = first + 2;
+        } else {
+          assert(element.length > first + 4, "Invalid Element; nothing after name: $element");
+          // set::::size
+          last = first + 3;
 
-        assert(element.codeUnitAt(first + 3) != _colonRune, "Invalid Element; four colons: $element");
+          assert(element.codeUnitAt(first + 4) != _colonRune, "Invalid Element; five colons: $element");
+        }
       }
     }
     return [element.substring(0, first), 1 + last - first, element.substring(1 + last)];
   }
 }
 
-class _MapOrList {
+class _MapOrListOrSet {
   final List? list;
   final Map? map;
+  final Set? set;
 
-  _MapOrList.map(this.map) : list = null;
-  _MapOrList.list(this.list) : map = null;
+  _MapOrListOrSet.map(this.map)
+      : list = null,
+        set = null;
+  _MapOrListOrSet.list(this.list)
+      : map = null,
+        set = null;
+  _MapOrListOrSet.set(this.set)
+      : map = null,
+        list = null;
 
-  Object extract() => list ?? map!;
+  Object extract() => list ?? map ?? set!;
 
-  void add(String name, Object value) => //
-      (name.isNotEmpty) //
-          ? map![name] = value
-          : list!.add(value);
+  void add(String name, Object value) {
+    if (map != null) {
+      map![name] = value;
+    } else if (list != null) {
+      list!.add(value);
+    } else {
+      set!.add(value);
+    }
+  }
+}
+
+enum _IterType {
+  map,
+  list,
+  set,
+}
+
+extension _IterTypeX on _IterType {
+  _MapOrListOrSet init() {
+    switch (this) {
+      case _IterType.map:
+        return _MapOrListOrSet.map({});
+      case _IterType.list:
+        return _MapOrListOrSet.list([]);
+      case _IterType.set:
+        return _MapOrListOrSet.set({});
+    }
+  }
+
+  static _IterType fromColons(int colons) {
+    switch (colons) {
+      case 2:
+        return _IterType.map;
+      case 3:
+        return _IterType.list;
+      case 4:
+        return _IterType.set;
+      default:
+        throw "Unexpected State";
+    }
+  }
 }
