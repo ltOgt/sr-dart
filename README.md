@@ -29,7 +29,7 @@ sections::3** object
 (For highlighting in VSCode see [here](https://github.com/ltOgt/sr-vscode))
 ## Reserverd symbols
 `SR` only reserves
-* `:` anywhere
+* `:` anywhere (`TODO: should be allowed in values, since always only one ':' in there, not allowed in names though`)
 * `.` as line prefix
 * `**` as comment initiators
     * (enabled iff file starts with `**`)
