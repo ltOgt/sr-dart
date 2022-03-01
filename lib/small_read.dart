@@ -27,6 +27,7 @@ class SmallReadConverter {
     required int depth,
   }) {
     assert(!key.contains(':') && !key.contains('.'), "Keys may not contain '.' or ':'");
+    assert(value is! String || !value.startsWith(':'), "Values may not start with ':'");
 
     if (value is String || value is num || value is bool) {
       // Leaf
