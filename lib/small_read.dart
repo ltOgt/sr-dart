@@ -85,7 +85,7 @@ class SmallReadConverter {
     throw "Unexpected State";
   }
 
-  static Map decode(String sr) => _decodeChild(
+  static Map<String, Object> decode(String sr) => _decodeChild(
         lineScope: sr.split('\n'),
         depth: 0,
         enableComments: (sr.startsWith("**")),
@@ -195,7 +195,7 @@ class SmallReadConverter {
 
 class _MapOrListOrSet {
   final List? list;
-  final Map? map;
+  final Map<String, Object>? map;
   final Set? set;
 
   _MapOrListOrSet.map(this.map)
