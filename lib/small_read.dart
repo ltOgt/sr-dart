@@ -26,6 +26,8 @@ class SmallReadConverter {
     required StringBuffer buffer,
     required int depth,
   }) {
+    assert(!key.contains(':') && !key.contains('.'), "Keys may not contain '.' or ':'");
+
     if (value is String || value is num || value is bool) {
       // Leaf
       buffer.writeln("${'.' * depth}$key:$value");
