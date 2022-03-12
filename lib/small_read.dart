@@ -153,43 +153,27 @@ class SmallReadConverter {
   static const int _colonRune = 58;
 
   /// Decomposes the element "X:::Y" into ["X",3,"Y"]
-  // TODO this can be simplified by generalizing
   static List _decomposeElement(String element) {
-    assert(element.length > 1, "Invalid element, smallest possible element has the form `:x`");
-
-    final int first = element.indexOf(':');
-    late final int last;
-
-    assert(first >= 0);
-    assert(element.length > first + 1, "Invalid Element; nothing after name: $element");
-
-    // Next char is not another colon
-    if (element.codeUnitAt(first + 1) != _colonRune) {
-      // name:value
-      last = first;
-    } else {
-      assert(element.length > first + 2, "Invalid Element; nothing after name: $element");
-
-      // Next-Next char is not another colon
-      if (element.codeUnitAt(first + 2) != _colonRune) {
-        // obj::size
-        last = first + 1;
+    int? first, last;
+    int i = 0;
+    for (final codeUnit in element.codeUnits) {
+      if (first == null) {
+        if (codeUnit == _colonRune) {
+          first = i;
+          last = i;
+        }
       } else {
-        assert(element.length > first + 3, "Invalid Element; nothing after name: $element");
-
-        if (element.codeUnitAt(first + 3) != _colonRune) {
-          // list:::size
-          last = first + 2;
+        if (codeUnit == _colonRune) {
+          last = i;
         } else {
-          assert(element.length > first + 4, "Invalid Element; nothing after name: $element");
-          // set::::size
-          last = first + 3;
-
-          assert(element.codeUnitAt(first + 4) != _colonRune, "Invalid Element; five colons: $element");
+          break;
         }
       }
+      i += 1;
     }
-    return [element.substring(0, first), 1 + last - first, element.substring(1 + last)];
+    if (first == null) throw "Invalid element, no colon found";
+
+    return [element.substring(0, first), (last! - first) + 1, element.substring(last + 1)];
   }
 }
 
